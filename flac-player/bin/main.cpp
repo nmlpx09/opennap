@@ -62,6 +62,10 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
     const auto delta = std::chrono::seconds(1);
 
     for (const auto& file: files) {
+        if (ctx->end) {
+            break;
+        }
+
         std::cerr << file.filename().string() << "; ";
 
         auto time = std::chrono::steady_clock::now() + delta;
@@ -100,10 +104,6 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
             } else if (!result.value()) {
                 break;
             }
-        }
-
-        if (ctx->end) {
-            break;
         }
     }
 
