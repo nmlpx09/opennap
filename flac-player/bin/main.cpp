@@ -59,7 +59,7 @@ void Write(TContextPtr ctx, NWrite::TWritePtr write) noexcept {
 }
 
 void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
-    const auto delta = std::chrono::seconds(1);
+    const auto delta = std::chrono::milliseconds(500);
 
     for (const auto& file: files) {
         if (ctx->end) {
