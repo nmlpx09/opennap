@@ -55,6 +55,8 @@ void Write(TContextPtr ctx, std::string device) noexcept {
 
     if (auto ec = write->Write(popQueue); ec) {
         std::cerr << "write error: " << ec.message() << std::endl;
+        ctx->end = true;
+        ctx->readCv.notify_one();
     }
 }
 
@@ -66,9 +68,24 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
 
         auto time = std::chrono::steady_clock::now() + delta;
 
-        NRead::TReadPtr read = std::make_unique<NRead::TFlac>();
-
         TFormat format;
+
+        auto pushQueue = [=, &time, &format] (TData data) noexcept {
+            std::unique_lock<std::mutex> ulock{ctx->mutex};
+            ctx->readCv.wait(ulock, [ctx] { return ctx->queue.empty() || ctx->end; });
+
+            if (ctx->end) {
+                return;
+            }
+
+            ctx->queue.emplace_back(std::make_tuple(time, format, std::move(data)));
+            time += delta;
+
+            ulock.unlock();
+            ctx->writeCv.notify_one();
+        };
+
+        NRead::TReadPtr read = std::make_unique<NRead::TFlac>();
         if (auto result = read->Init(file.string()); !result) {
             std::cerr << "read init error: " << result.error().message() << std::endl;
             return;
@@ -78,19 +95,13 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
 
         std::cerr << "format: " << format.SampleRate << "Hz " << format.BitsPerSample << "bps " << format.NumChannels << "ch" << std::endl;
 
-        auto pushQueue = [=, &time] (TData data) noexcept {
-            std::unique_lock<std::mutex> ulock{ctx->mutex};
-            ctx->readCv.wait(ulock, [ctx] { return ctx->queue.empty(); });
-
-            ctx->queue.emplace_back(std::make_tuple(time, format, std::move(data)));
-            time += delta;
-
-            ulock.unlock();
-            ctx->writeCv.notify_one();
-        };
-
-        if (auto ec = read->Read(pushQueue); ec) {
-            std::cerr << "read error: " << ec.message() << std::endl;
+        while (!ctx->end) {
+            if (auto result = read->Read(pushQueue); !result) {
+                std::cerr << result.error().message() << std::endl;
+                break;
+            } else if (!result.value()) {
+                break;
+            }
         }
     }
 

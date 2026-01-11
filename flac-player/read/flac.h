@@ -42,7 +42,7 @@ public:
     TFlac& operator=(TFlac&&) = delete;
 
     std::expected<TFormat, std::error_code> Init(std::string fileName) noexcept override;
-    std::error_code Read(const TCallback&) noexcept override;
+    std::expected<bool, std::error_code> Read(const TCallback& callback) noexcept override;
 
 private:
     TFlacDecoder Decoder;
