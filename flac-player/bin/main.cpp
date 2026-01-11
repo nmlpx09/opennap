@@ -31,9 +31,7 @@ struct TContext {
 
 using TContextPtr = std::shared_ptr<TContext>;
 
-void Write(TContextPtr ctx, std::string device) noexcept {
-    NWrite::TWritePtr write = std::make_unique<NWrite::TWrite>(device);
-
+void Write(TContextPtr ctx, NWrite::TWritePtr write) noexcept {
     auto popQueue = [=] () noexcept -> std::optional<std::pair<TFormat, TData>> {
         std::unique_lock<std::mutex> ulock{ctx->mutex};
         ctx->writeCv.wait(ulock, [ctx] { return !ctx->queue.empty() || ctx->end; });
@@ -103,6 +101,10 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
                 break;
             }
         }
+
+        if (ctx->end) {
+            break;
+        }
     }
 
     ctx->end = true;
@@ -140,8 +142,15 @@ int main(int argc, char *argv[]) {
     std::sort(files.begin(), files.end());
 
     auto ctx = std::make_shared<TContext>();
+
+    NWrite::TWritePtr write = std::make_unique<NWrite::TWrite>(device);
+
+    if (auto ec = write->Init(TFormat{}); ec) {
+        std::cerr << "init device error: " << device << std::endl;
+        return 1;
+    }
     
-    std::thread tWrite(Write, ctx, std::move(device));
+    std::thread tWrite(Write, ctx, std::move(write));
     std::thread tRead(Read, ctx, std::move(files));
 
     tRead.join();

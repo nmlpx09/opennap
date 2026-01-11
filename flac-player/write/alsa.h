@@ -20,8 +20,6 @@ public:
     TWrite& operator=(const TWrite&) = delete;
     TWrite& operator=(TWrite&&) = delete;
     std::error_code Write(const TCallback& callback) noexcept override;
-
-private:
     std::error_code Init(TFormat sampleFormat) noexcept override;
 
 private:

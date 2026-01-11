@@ -15,7 +15,6 @@ struct TInterface {
 public:
     virtual std::error_code Write(const TCallback&) noexcept = 0;
     virtual ~TInterface() {};
-protected:
     virtual std::error_code Init(TFormat) noexcept = 0;
 };
 
