@@ -87,36 +87,29 @@ std::error_code TWrite::Init(TFormat sampleFormat) noexcept {
 }
 
 std::error_code TWrite::Write(const TCallback& callback) noexcept {
-    TFormat currentFormat;
-
-    while (true) {
-        if (auto data = callback(); !data) {
-            break;
-        } else {
-            auto&& [format, buffer] = data.value();
-            if (currentFormat != format) {
-                if(auto ec = Init(format); ec) {
-                    return ec;
-                } else {
-                    currentFormat = format;
-                }
-            }
-
-            auto frames = buffer.size() / FrameSize;
-
-            auto err = snd_pcm_writei(SoundDevice, buffer.data(), frames);
-
-            if (err == -ENODEV) {
-                if (auto ec = Init(format); ec) {
-                    return ec;
-                }
-            } else if (err == -EPIPE) {
-                snd_pcm_prepare(SoundDevice);
-                snd_pcm_writei(SoundDevice, buffer.data(), frames);
+    if (auto data = callback(); data) {
+        auto&& [format, buffer] = data.value();
+        if (CurrentFormat != format) {
+            if(auto ec = Init(format); ec) {
+                return ec;
+            } else {
+                CurrentFormat = format;
             }
         }
-    }
 
+        auto frames = buffer.size() / FrameSize;
+
+        auto err = snd_pcm_writei(SoundDevice, buffer.data(), frames);
+
+        if (err == -ENODEV) {
+            if (auto ec = Init(format); ec) {
+                return ec;
+            }
+        } else if (err == -EPIPE) {
+            snd_pcm_prepare(SoundDevice);
+            snd_pcm_writei(SoundDevice, buffer.data(), frames);
+        }
+    }
     return {};
 }
 

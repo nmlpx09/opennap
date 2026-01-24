@@ -26,6 +26,7 @@ private:
     std::string Device;
     snd_pcm_t* SoundDevice = nullptr;
     std::size_t FrameSize = 1;
+    TFormat CurrentFormat;
 };
 
 }

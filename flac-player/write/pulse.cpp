@@ -63,24 +63,18 @@ std::error_code TWrite::Init(TFormat sampleFormat) noexcept {
 }
 
 std::error_code TWrite::Write(const TCallback& callback) noexcept {
-    TFormat currentFormat;
+    if (auto data = callback(); data) {
+        auto&& [format, buffer] = data.value();
 
-    while (true) {
-        if (auto data = callback(); !data) {
-            break;
-        } else {
-            auto&& [format, buffer] = data.value();
-
-            if (currentFormat != format) {
-                if (auto ec = Init(format); ec) {
-                    return ec;
-                } else {
-                    currentFormat = format;
-                }
+        if (CurrentFormat != format) {
+            if (auto ec = Init(format); ec) {
+                return ec;
+            } else {
+                CurrentFormat = format;
             }
-
-            pa_simple_write(SoundDevice, buffer.data(), buffer.size(), nullptr);
         }
+
+        pa_simple_write(SoundDevice, buffer.data(), buffer.size(), nullptr);
     }
     return {};
 }
