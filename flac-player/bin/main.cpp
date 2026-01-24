@@ -33,13 +33,8 @@ using TContextPtr = std::shared_ptr<TContext>;
 
 void Write(TContextPtr ctx, NWrite::TWritePtr write) noexcept {
     auto popQueue = [=] () noexcept -> std::optional<std::pair<TFormat, TData>> {
-        std::unique_lock<std::mutex> ulock{ctx->mutex};
-        ctx->writeCv.wait(ulock, [ctx] { return !ctx->queue.empty(); });
-
         auto [date, format, buffer] = ctx->queue.front();
         ctx->queue.pop_front();
-
-        ulock.unlock();
         ctx->readCv.notify_one();
 
         std::this_thread::sleep_until(date);
@@ -48,6 +43,10 @@ void Write(TContextPtr ctx, NWrite::TWritePtr write) noexcept {
     };
 
     while (!ctx->end) {
+        std::unique_lock<std::mutex> ulock{ctx->mutex};
+        ctx->writeCv.wait(ulock, [ctx] { return !ctx->queue.empty(); });
+        ulock.unlock();
+
         if (auto ec = write->Write(popQueue); ec) {
             std::cerr << "write error: " << ec.message() << std::endl;
         }
@@ -65,14 +64,10 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
         TFormat format;
 
         auto pushQueue = [=, &time, &format] (TData data) noexcept {
-            std::unique_lock<std::mutex> ulock{ctx->mutex};
-            ctx->readCv.wait(ulock, [ctx] { return ctx->queue.empty(); });
-
             ctx->queue.emplace_back(std::make_tuple(time, format, std::move(data)));
-            time += delta;
-
-            ulock.unlock();
             ctx->writeCv.notify_one();
+
+            time += delta;
         };
 
         NRead::TReadPtr read = std::make_unique<NRead::TFlac>();
@@ -86,6 +81,10 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
         std::cerr << "format: " << format.SampleRate << "Hz " << format.BitsPerSample << "bps " << format.NumChannels << "ch" << std::endl;
 
         while (true) {
+            std::unique_lock<std::mutex> ulock{ctx->mutex};
+            ctx->readCv.wait(ulock, [ctx] { return ctx->queue.empty(); });
+            ulock.unlock();
+
             if (auto result = read->Read(pushQueue); !result) {
                 std::cerr << result.error().message() << std::endl;
                 break;
