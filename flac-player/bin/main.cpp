@@ -49,14 +49,21 @@ void Write(TContextPtr ctx, NWrite::TWritePtr write) noexcept {
 
         if (auto ec = write->Write(popQueue); ec) {
             std::cerr << "write error: " << ec.message() << std::endl;
+            break;
         }
     }
+    ctx->end = true;
+    ctx->readCv.notify_one();
 }
 
 void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
     const auto delta = std::chrono::milliseconds(500);
 
     for (const auto& file: files) {
+        if (ctx->end) {
+            break;
+        }
+
         std::cerr << file.filename().string() << "; ";
 
         auto time = std::chrono::steady_clock::now() + delta;
@@ -80,10 +87,14 @@ void Read(TContextPtr ctx, std::vector<std::filesystem::path> files) noexcept {
 
         std::cerr << "format: " << format.SampleRate << "Hz " << format.BitsPerSample << "bps " << format.NumChannels << "ch" << std::endl;
 
-        while (true) {
+        while (!ctx->end) {
             std::unique_lock<std::mutex> ulock{ctx->mutex};
-            ctx->readCv.wait(ulock, [ctx] { return ctx->queue.empty(); });
+            ctx->readCv.wait(ulock, [ctx] { return ctx->queue.empty() || ctx->end; });
             ulock.unlock();
+
+            if (ctx->end) {
+                break;
+            }
 
             if (auto result = read->Read(pushQueue); !result) {
                 std::cerr << result.error().message() << std::endl;
