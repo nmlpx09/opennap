@@ -9,8 +9,7 @@ static const std::string INDEX = R"(
     <head>
         <title>opennap web player</title>
     </head>
-    <body>
-
+    <body style="background-color:black;">
         <style>
             .selected {
                 background-color:gray;
@@ -18,11 +17,12 @@ static const std::string INDEX = R"(
             .table {
                 width: 70%;
                 border: 1px solid;
-                margin: 8px 2px;
+                margin: 8px 2px 8px 2px;
+                color: white;
             }
             .button {
-                width: 250px;
-                height: 120px;
+                width: 35%;
+                height: 35%;
                 background-color: blue;
                 border: none;
                 color: white;
@@ -31,18 +31,19 @@ static const std::string INDEX = R"(
                 text-decoration: none;
                 display: inline-block;
                 font-size: 16px;
-                margin: 8px 2px;
+                margin: 8px 2px 8px 2px;
                 cursor: pointer;
             }
             .textarea {
                 width: 70%;
-                border: 1px solid;
+                border: 0px;
                 resize: none;
                 outline: none;
-                margin: 8px 2px;
+                margin: 8px 2px 8px 2px;
+                background-color: black;
+                color: white;
             }
         </style>
-        
         <div>
           <div id="filelist"></div>
           <textarea id="status" class="textarea" rows="4" cols="50"></textarea>
@@ -57,7 +58,6 @@ static const std::string INDEX = R"(
               <button onclick="onClick('stop') " class="button">stop</button>
           </div>
         </div>
-
         <script>
             let host = location.host
 
@@ -128,7 +128,6 @@ static const std::string INDEX = R"(
 
             fetchStaus();
         </script>
-
     </body>
 </html>
 )";

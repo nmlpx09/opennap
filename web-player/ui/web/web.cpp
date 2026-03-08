@@ -9,16 +9,16 @@
 #include <unistd.h>
 
 namespace {
-    void SockWrite(std::int32_t socketFd, const std::string& response) {
+    void SockWrite(std::int32_t socketFd, const std::string& response) noexcept {
         write(socketFd, response.c_str(), response.size());
         close(socketFd);
     }
 
-    std::string MakeResponse(const std::string& headers, const std::string& payload) {
+    std::string MakeResponse(const std::string& headers, const std::string& payload) noexcept {
         return headers + std::to_string(payload.size()) + "\r\n\r\n" + payload;
     }
 
-    std::string MakeResponse(const std::string& headers) {
+    std::string MakeResponse(const std::string& headers) noexcept {
         return MakeResponse(headers, "");
     }
 }

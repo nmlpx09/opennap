@@ -64,12 +64,12 @@ void Read(TContextPtr ctx, TFiles files, NUI::TUIPtr ui) noexcept {
             format = result.value();
         }
 
-        std::string currentFile = file.filename().string() + "; " +
+        std::string status = "\nformat: " +
             std::to_string(format.SampleRate) + "hz " +
             std::to_string(format.BitsPerSample) + "bps " +
             std::to_string(format.NumChannels) + "ch";
 
-        ui->StatusDraw(currentFile);
+        ui->StatusDraw(status);
         ui->ListDraw(files, current++);
 
         auto storePayload = [=, &time, &format] (TData data) noexcept {
@@ -90,8 +90,10 @@ void Read(TContextPtr ctx, TFiles files, NUI::TUIPtr ui) noexcept {
                 std::string error = "read error: {} " + result.error().message();
                 ui->StatusDraw(error);
                 break;
-            } else if (!result.value()) {
+            } else if (!result.value().first) {
                 break;
+            } else {
+                ui->StatusDraw(status + "\nprogress: " + std::to_string(result.value().second) + "%");
             }
         }
     }

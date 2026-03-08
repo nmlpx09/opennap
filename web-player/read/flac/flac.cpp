@@ -10,6 +10,7 @@ void TFlacDecoder::metadata_callback(const FLAC__StreamMetadata *metadata) {
         NumChannels = metadata->data.stream_info.channels;
         BitsPerSample = metadata->data.stream_info.bits_per_sample;
         BytesPerSample = BitsPerSample / 8;
+        TotalSamples = metadata->data.stream_info.total_samples;
     }
 }
 
@@ -23,6 +24,7 @@ FLAC__StreamDecoderWriteStatus TFlacDecoder::write_callback(const FLAC__Frame* f
         const auto* r = reinterpret_cast<const std::uint8_t*>(&frames[1][index]);
         Buffer.insert(Buffer.end(), l, l + BytesPerSample);
         Buffer.insert(Buffer.end(), r, r + BytesPerSample);
+        ++CurrentSamples;
     }
 
     while (Buffer.size() >= DataSize) {
@@ -69,16 +71,18 @@ std::expected<TFormat, std::error_code> TFlac::Init(std::string fileName) noexce
     };
 }
 
-std::expected<bool, std::error_code> TFlac::Read(const TCallback& callback) noexcept {
+std::expected<std::pair<bool, std::uint8_t>, std::error_code> TFlac::Read(const TCallback& callback) noexcept {
     Decoder.Callback = callback;
 
     if (Decoder.get_state() == FLAC__STREAM_DECODER_END_OF_STREAM) {
-        return false;
+        return std::make_pair(false, 0);
     }
 
     Decoder.process_single();
 
-    return true;
+    auto persent = Decoder.CurrentSamples * 100 / Decoder.TotalSamples;
+
+    return std::make_pair(true, persent);
 }
 
 }

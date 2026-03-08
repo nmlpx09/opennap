@@ -25,7 +25,8 @@ public:
     std::uint32_t BitsPerSample = 0;
     std::uint32_t BytesPerSample = 0;
     std::uint32_t SampleRate = 0;
-
+    std::uint64_t TotalSamples = 1;
+    std::uint64_t CurrentSamples = 0;
     std::deque<TData::value_type> Buffer;
 };
 
@@ -41,7 +42,7 @@ public:
     TFlac& operator=(TFlac&&) = delete;
 
     std::expected<TFormat, std::error_code> Init(std::string fileName) noexcept override;
-    std::expected<bool, std::error_code> Read(const TCallback& callback) noexcept override;
+    std::expected<std::pair<bool, std::uint8_t>, std::error_code> Read(const TCallback& callback) noexcept override;
 
 private:
     TFlacDecoder Decoder;
