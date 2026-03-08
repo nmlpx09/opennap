@@ -4,7 +4,7 @@ open network audio player
 
 1. pulse-client captured audio stream from pulseaudio and received it to network
 2. alsa-server aptured audio stream from network and received it to alsa
-3. web audio flac player for 192000, 96000, 48000, 44100 Hz 16 or 24 bit stereo format
+3. web-player flac player for 192000, 96000, 48000, 44100 Hz 16 or 24 bit stereo format
 
 # requirement
 
