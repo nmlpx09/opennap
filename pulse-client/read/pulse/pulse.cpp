@@ -1,5 +1,6 @@
 #include "pulse.h"
-#include "errors.h"
+
+#include <read/errors.h>
 
 namespace NRead {
 

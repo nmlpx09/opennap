@@ -1,5 +1,6 @@
-#include "errors.h"
 #include "socket.h"
+
+#include <write/errors.h>
 
 #include <arpa/inet.h>
 #include <unistd.h>

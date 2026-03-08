@@ -2,7 +2,7 @@ CC = clang++-20
 CCFLAGS = -O3 -std=c++23 -pedantic -Wall -W -Werror -Wextra -c -I.
 DEFINES =
 LDFLAGS = -lpulse-simple
-OBJ = bin/main.o common/utils.o read/pulse.o write/socket.o
+OBJ = bin/main.o common/utils.o read/pulse/pulse.o write/socket/socket.o
 RUN = bin/pclient
 
 all: $(OBJ)

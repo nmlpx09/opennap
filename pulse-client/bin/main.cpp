@@ -1,8 +1,8 @@
 #include "config.h"
 
 #include <common/utils.h>
-#include <read/pulse.h>
-#include <write/socket.h>
+#include <read/pulse/pulse.h>
+#include <write/socket/socket.h>
 
 #include <condition_variable>
 #include <memory>

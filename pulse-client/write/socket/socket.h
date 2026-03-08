@@ -1,8 +1,7 @@
 #pragma once
 
-#include "interface.h"
-
 #include <common/types.h>
+#include <write/interface.h>
 
 #include <netinet/in.h>
 
