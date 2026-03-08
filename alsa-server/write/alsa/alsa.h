@@ -1,8 +1,8 @@
 #pragma once
 
-#include "interface.h"
-
 #include <alsa/asoundlib.h>
+
+#include <write/interface.h>
 
 #include <common/types.h>
 

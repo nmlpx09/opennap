@@ -1,8 +1,8 @@
 #include "config.h"
 
 #include <common/utils.h>
-#include <read/socket.h>
-#include <write/alsa.h>
+#include <read/socket/socket.h>
+#include <write/alsa/alsa.h>
 
 #include <condition_variable>
 #include <memory>
