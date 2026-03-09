@@ -1,4 +1,4 @@
-CC = clang++-20
+CC = g++
 CCFLAGS = -O3 -std=c++23 -pedantic -Wall -W -Werror -Wextra -c -I.
 DEFINES =
 LDFLAGS = -lpulse-simple

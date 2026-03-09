@@ -8,7 +8,7 @@ open network audio player
 
 # requirement
 
-1. clang-20
+1. g++ (version 12.2.0)
 2. make
 3. libasound2-dev
 4. libpulse-dev
